@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 @Entity
 public class Transaction {
@@ -22,7 +23,7 @@ public class Transaction {
 	
 	private BigDecimal price;
 
-	private String from;
+	private String source;
 	
 	private String memo;
 
@@ -49,13 +50,13 @@ public class Transaction {
 	public void setPrice(BigDecimal price) {
 		this.price = price;
 	}
-
-	public String getFrom() {
-		return from;
+	
+	public String getSource() {
+		return source;
 	}
 
-	public void setFrom(String from) {
-		this.from = from;
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	public String getMemo() {

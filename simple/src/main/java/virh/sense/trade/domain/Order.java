@@ -3,13 +3,20 @@ package virh.sense.trade.domain;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Table;
 
 @Entity
-public class Order {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "f_type")
+@Table(name = "invoice")
+public abstract class Order {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
