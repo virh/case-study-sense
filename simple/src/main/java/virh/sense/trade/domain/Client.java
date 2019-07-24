@@ -23,6 +23,13 @@ public class Client {
 	private Date createTime;
 	
 	private Date updateTime;
+	
+	public Client() {}
+	
+	public Client(Long id, String name) {
+		this.id = id;
+		this.name = name;
+	}
 
 	public Long getId() {
 		return id;

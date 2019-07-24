@@ -1,5 +1,7 @@
 package virh.sense.trade.domain;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,11 +17,23 @@ public class Account {
 	private Long id;
 	
 	private String name;
+	
+	private BigDecimal balance;
 
 	@OneToOne
 	@JoinColumn(name = "client_id")
 	private Client client;
 	
+	public Account() {
+	}
+
+	public Account(Long id, String name, BigDecimal balance, Client client) {
+		this.id = id;
+		this.name = name;
+		this.balance = balance;
+		this.client = client;
+	}
+
 	public Long getId() {
 		return id;
 	}
@@ -34,6 +48,14 @@ public class Account {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public BigDecimal getBalance() {
+		return balance;
+	}
+
+	public void setBalance(BigDecimal balance) {
+		this.balance = balance;
 	}
 
 	public Client getClient() {
