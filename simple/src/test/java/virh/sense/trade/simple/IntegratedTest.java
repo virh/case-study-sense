@@ -81,6 +81,8 @@ public class IntegratedTest {
 		accountRepository.save(account);
 		product = new Product(null, "orange", BigDecimal.valueOf(20), 10);
 		productRepository.save(product);
+		productService.loadStock();
+		accountService.loadBalance();
 	}
 	
 	@After
@@ -90,6 +92,8 @@ public class IntegratedTest {
 		accountRepository.deleteAll();
 		clientRepository.deleteAll();
 		productRepository.deleteAll();
+		productService.clearStock();
+		accountService.clearBalance();
 	}
 	
 	@Test
