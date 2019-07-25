@@ -15,7 +15,7 @@ public class ProductService {
 	
 	public boolean checkStockEnough(Long productId, Long number) {
 		Optional<Product> product = productRepository.findById(productId);
-		return product.isPresent() && product.get().getNumber() > number;
+		return product.isPresent() && product.get().getNumber() >= number;
 	}
 	
 }

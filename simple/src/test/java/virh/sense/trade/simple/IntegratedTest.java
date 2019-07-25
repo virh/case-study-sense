@@ -1,15 +1,13 @@
 package virh.sense.trade.simple;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,9 @@ import virh.sense.trade.domain.Product;
 import virh.sense.trade.service.AccountRepository;
 import virh.sense.trade.service.AccountService;
 import virh.sense.trade.service.ClientRepository;
+import virh.sense.trade.service.OrderItemRepository;
 import virh.sense.trade.service.OrderRepository;
+import virh.sense.trade.service.OrderService;
 import virh.sense.trade.service.ProductRepository;
 import virh.sense.trade.service.ProductService;
 import virh.sense.trade.service.TransactionRepository;
@@ -44,6 +44,9 @@ public class IntegratedTest {
 	OrderRepository orderRepository;
 	
 	@Autowired
+	OrderItemRepository orderItemRepository;
+	
+	@Autowired
 	TransactionRepository transactionRepository;
 	
 	@Autowired
@@ -51,6 +54,9 @@ public class IntegratedTest {
 	
 	@Autowired
 	AccountService accountService;
+	
+	@Autowired
+	OrderService orderService;
 	
 	private Client client;
 	private Account account;
@@ -68,6 +74,8 @@ public class IntegratedTest {
 	
 	@After
 	public void cleanData() {
+		orderItemRepository.deleteAll();
+		orderRepository.deleteAll();
 		accountRepository.deleteAll();
 		clientRepository.deleteAll();
 		productRepository.deleteAll();
@@ -75,16 +83,19 @@ public class IntegratedTest {
 	
 	@Test
 	public void test_stock_not_enough() {
-		assertFalse(productService.checkStockEnough(product.getId(), 20l));
+		assertFalse(orderService.buy(product.getId(), account.getId(), 20L, BigDecimal.valueOf(100)));
 	}
 	
 	@Test
 	public void test_balance_not_enough() {
-		assertFalse(accountService.checkBalanceEnough(account.getId(), BigDecimal.valueOf(200)));
+		assertFalse(orderService.buy(product.getId(), account.getId(), 10L, BigDecimal.valueOf(200)));
 	}
 	
 	@Test
 	public void test_normal() {
+		assertTrue(orderService.buy(product.getId(), account.getId(), 10L, BigDecimal.valueOf(100)));
+		assertEquals(productRepository.findById(product.getId()).get().getNumber(), 0);
+		assertEquals(accountRepository.findById(account.getId()).get().getBalance().doubleValue(), 0, 0.001);
 	}
 
 }
