@@ -110,6 +110,12 @@ public class IntegratedTest {
 	public void test_normal() {
 		assertTrue(orderService.buy(product.getId(), account.getId(), 10L, BigDecimal.valueOf(100)));
 		assertFalse(orderService.buy(product.getId(), account.getId(), 10L, BigDecimal.valueOf(100)));
+		try {
+			// wait the async order crated success
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		assertEquals(0, productRepository.findById(product.getId()).get().getNumber());
 		assertEquals(0, accountRepository.findById(account.getId()).get().getBalance().doubleValue(), 0.001);
 	}
@@ -155,6 +161,12 @@ public class IntegratedTest {
 		assertEquals(1, success);
 		assertEquals(99, fail);
 		assertEquals(0, exceptions.size());
+		try {
+			// wait the async order crated success
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		assertEquals(0, productRepository.findById(product.getId()).get().getNumber());
 		assertEquals(0, accountRepository.findById(account.getId()).get().getBalance().doubleValue(), 0.001);
 	}
@@ -202,6 +214,12 @@ public class IntegratedTest {
 		}
 		assertEquals(1, success);
 		assertEquals(9_999, fail);
+		try {
+			// wait the async order crated success
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		assertEquals(0L, productService.queryStock(product.getId()).longValue());
 		assertEquals(0, accountService.queryBalance(account.getId()).doubleValue(), 0.001);
 		assertEquals(0, exceptions.size());
