@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import virh.sense.trade.annotation.LogExecutionTime;
 import virh.sense.trade.domain.Account;
 import virh.sense.trade.domain.OrderItem;
 import virh.sense.trade.domain.Product;
@@ -34,6 +35,7 @@ public class OrderService {
 	
 	private ReentrantLock lock = new ReentrantLock();
 	
+	@LogExecutionTime
 	public boolean buy(Long productId, Long accountId, Long number, BigDecimal price) {
 		lock.lock();
 		try {

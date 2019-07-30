@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import virh.sense.trade.annotation.LogExecutionTime;
+import virh.sense.trade.aspect.LogExecuteTimeAspect;
 import virh.sense.trade.domain.Account;
 import virh.sense.trade.service.AccountRepository;
 import virh.sense.trade.service.ProductService;
@@ -13,7 +15,7 @@ import virh.sense.trade.service.ProductService;
 @SpringBootApplication
 @EntityScan(basePackageClasses=Account.class)
 @EnableJpaRepositories(basePackageClasses = AccountRepository.class)
-@ComponentScan(basePackageClasses=ProductService.class)
+@ComponentScan(basePackageClasses= {LogExecutionTime.class, ProductService.class, LogExecuteTimeAspect.class})
 public class SimpleApplication {
 
 	public static void main(String[] args) {
