@@ -3,6 +3,7 @@ package virh.sense.trade.service;
 import java.math.BigDecimal;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,18 +16,18 @@ public class OrderService {
 
 	@Autowired
 	private OrderRepository orderRepository;
-	
+
 	@Autowired
 	private OrderItemRepository orderItemRepository;
-	
-	@Autowired
+
+	@Reference(version="0.0.1", application="product-consume", url="dubbo://localhost:12346")
 	private ProductService productService;
-	
-	@Autowired
+
+	@Reference(version="0.0.1", application="account-consume", url="dubbo://localhost:12345")
 	private AccountService accountService;
-	
+
 	private ReentrantLock lock = new ReentrantLock();
-	
+
 	@LogExecutionTime
 	public boolean buy(Long productId, Long accountId, Long number, BigDecimal price) {
 		lock.lock();
@@ -64,5 +65,5 @@ public class OrderService {
 		}
 		return true;
 	}
-	
+
 }
