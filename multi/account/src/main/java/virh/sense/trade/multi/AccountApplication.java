@@ -2,7 +2,6 @@ package virh.sense.trade.multi;
 
 import org.apache.dubbo.config.spring.context.annotation.DubboComponentScan;
 import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
