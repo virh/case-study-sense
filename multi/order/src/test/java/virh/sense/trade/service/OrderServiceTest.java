@@ -24,7 +24,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +41,6 @@ public class OrderServiceTest {
 
 	private static Logger log = LoggerFactory.getLogger(OrderServiceTest.class);
 
-	private ApplicationConfig accountApplication = new ApplicationConfig("account-test");
-	private ApplicationConfig productApplication = new ApplicationConfig("product-test");
 	private RegistryConfig registryNA = new RegistryConfig("N/A");
 	private ProtocolConfig protocolAccountDubo12345 = new ProtocolConfig("dubbo", 12345);
 	private ProtocolConfig protocolProductDubo12346 = new ProtocolConfig("dubbo", 12346);
@@ -59,6 +56,9 @@ public class OrderServiceTest {
 	
 	@Autowired
 	OrderService orderService;
+	
+	@Autowired
+	ApplicationConfig applicationConfig;
 
 	@Before
 	public void prepareData() {
@@ -76,24 +76,26 @@ public class OrderServiceTest {
 	
 	private ServiceConfig<AccountService> exportAccountService() {
 		ServiceConfig<AccountService> service = new ServiceConfig<AccountService>();
-        service.setApplication(accountApplication);
+        service.setApplication(applicationConfig);
         service.setRegistry(registryNA);
         service.setProtocol(protocolAccountDubo12345);
         service.setInterface(AccountService.class.getName());
         service.setRef(accountService);
         service.setValidation(String.valueOf(true));
+        service.setVersion("0.0.1");
         service.export();
         return service;
 	}
 	
 	private ServiceConfig<ProductService> exportProductService() {
 		ServiceConfig<ProductService> service = new ServiceConfig<ProductService>();
-        service.setApplication(productApplication);
+        service.setApplication(applicationConfig);
         service.setRegistry(registryNA);
         service.setProtocol(protocolProductDubo12346);
-        service.setInterface(AccountService.class.getName());
+        service.setInterface(ProductService.class.getName());
         service.setRef(productService);
         service.setValidation(String.valueOf(true));
+        service.setVersion("0.0.1");
         service.export();
         return service;
 	}
