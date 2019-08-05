@@ -2,6 +2,7 @@ package virh.sense.trade.service;
 
 import static org.junit.Assert.assertFalse;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,11 @@ public class OrderRepositoryTest {
 
 	@Autowired
 	OrderRepository orderRepository;
+	
+	@Before
+	public void prepareData() {
+		orderRepository.deleteAll();
+	}
 	
 	@Test
 	public void testDataSource() {
