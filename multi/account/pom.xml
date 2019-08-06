@@ -11,15 +11,6 @@
 	<artifactId>multi-account</artifactId>
 
 	<dependencies>
-		<!-- Dubbo Spring Boot Starter -->
-		<dependency>
-			<groupId>org.apache.dubbo</groupId>
-			<artifactId>dubbo-spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.dubbo</groupId>
-			<artifactId>dubbo</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>virh.sense.trade</groupId>
 			<artifactId>multi-common</artifactId>

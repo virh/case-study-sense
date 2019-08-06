@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import virh.sense.trade.domain.Product;
 
-@Service(timeout=5000, version="0.0.1")
+@Service
 public class ProductServiceImpl implements ProductService {
 
 	@Autowired

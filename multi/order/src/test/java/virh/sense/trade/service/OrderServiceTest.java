@@ -16,10 +16,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.dubbo.config.ApplicationConfig;
-import org.apache.dubbo.config.ProtocolConfig;
-import org.apache.dubbo.config.RegistryConfig;
-import org.apache.dubbo.config.ServiceConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,65 +37,25 @@ public class OrderServiceTest {
 
 	private static Logger log = LoggerFactory.getLogger(OrderServiceTest.class);
 
-	private RegistryConfig registryNA = new RegistryConfig("N/A");
-	private ProtocolConfig protocolAccountDubo12345 = new ProtocolConfig("dubbo", 12345);
-	private ProtocolConfig protocolProductDubo12346 = new ProtocolConfig("dubbo", 12346);
-
-	private ServiceConfig<AccountService> accountServiceConfig;
-	private ServiceConfig<ProductService> productServiceConfig;
+	@MockBean
+	AccountServiceClient accountService;
 	
 	@MockBean
-	AccountService accountService;
-	
-	@MockBean
-	ProductService productService;
+	ProductServiceClient productService;
 	
 	@Autowired
 	OrderService orderService;
-	
-	@Autowired
-	ApplicationConfig applicationConfig;
 
 	@Before
 	public void prepareData() {
-		accountServiceConfig = exportAccountService();
-		productServiceConfig = exportProductService();
 		when(accountService.checkBalanceEnough(anyLong(), any())).thenReturn(true, false);
 		when(productService.checkStockEnough(anyLong(), anyLong())).thenReturn(true, false);
 	}
 
 	@After
 	public void cleanServiceConfig() {
-		accountServiceConfig.unexport();
-		productServiceConfig.unexport();
 	}
-	
-	private ServiceConfig<AccountService> exportAccountService() {
-		ServiceConfig<AccountService> service = new ServiceConfig<AccountService>();
-        service.setApplication(applicationConfig);
-        service.setRegistry(registryNA);
-        service.setProtocol(protocolAccountDubo12345);
-        service.setInterface(AccountService.class.getName());
-        service.setRef(accountService);
-        service.setValidation(String.valueOf(true));
-        service.setVersion("0.0.1");
-        service.export();
-        return service;
-	}
-	
-	private ServiceConfig<ProductService> exportProductService() {
-		ServiceConfig<ProductService> service = new ServiceConfig<ProductService>();
-        service.setApplication(applicationConfig);
-        service.setRegistry(registryNA);
-        service.setProtocol(protocolProductDubo12346);
-        service.setInterface(ProductService.class.getName());
-        service.setRef(productService);
-        service.setValidation(String.valueOf(true));
-        service.setVersion("0.0.1");
-        service.export();
-        return service;
-	}
-	
+
 	@Test
 	public void test_stock_not_enough() {
 		when(productService.checkStockEnough(anyLong(), anyLong())).thenReturn(false);
