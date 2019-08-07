@@ -1,18 +1,22 @@
 package virh.sense.trade.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.reset;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 import java.math.BigDecimal;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,23 +33,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import virh.sense.trade.multi.OrderApplication;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(properties = {"endpoint.account.url=http://localhost:8081","endpoint.product.url=http://localhost:8081"})
 @ContextConfiguration(classes = OrderApplication.class)
+@AutoConfigureWireMock(port = 8081)
 public class IntegrateMockTest {
 
 	private static Logger log = LoggerFactory.getLogger(IntegrateMockTest.class);
@@ -53,51 +50,49 @@ public class IntegrateMockTest {
 	@Autowired
 	OrderService orderService;
 	
-	@Autowired
-	RestTemplate restTemplate;
-	
-	private MockRestServiceServer mockServer;
-    private ObjectMapper mapper = new ObjectMapper();
- 
-    @Before
-    public void init() {
-        mockServer = MockRestServiceServer.createServer(restTemplate);
-    }
-
 	@Before
 	public void prepareData() throws URISyntaxException {
-//		when(accountService.checkBalanceEnough(anyLong(), any())).thenReturn(true, false);
-//		when(productService.checkStockEnough(anyLong(), anyLong())).thenReturn(true, false);
-		mockServer.expect(ExpectedCount.once(), 
-		          requestTo(new URI("http://localhost:8081/account/check")))
-		          .andExpect(method(HttpMethod.GET))
-		          .andRespond(withStatus(HttpStatus.OK)
-		          .contentType(MediaType.TEXT_PLAIN)
-		          .body("true")
-		        );  
-		mockServer.expect(ExpectedCount.once(), 
-		          requestTo(new URI("http://localhost:8080/product/check")))
-		          .andExpect(method(HttpMethod.GET))
-		          .andRespond(withStatus(HttpStatus.OK)
-		          .contentType(MediaType.TEXT_PLAIN)
-		          .body("true")
-		        );
+		stubFor(get(urlPathMatching("/account/check")).atPriority(1)
+				.inScenario("AccountScenario")
+				.whenScenarioStateIs(STARTED)
+				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("true"))
+				.willSetStateTo("FAIL"));
+		stubFor(get(urlPathMatching("/product/check")).atPriority(1)
+				.inScenario("ProductScenario")
+				.whenScenarioStateIs(STARTED)
+				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("true"))
+				.willSetStateTo("FAIL"));
+		stubFor(get(urlPathMatching("/account/check")).atPriority(1)
+				.inScenario("AccountScenario")
+				.whenScenarioStateIs("FAIL")
+				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("false")));
+		stubFor(get(urlPathMatching("/product/check")).atPriority(1)
+				.inScenario("ProductScenario")
+				.whenScenarioStateIs("FAIL")
+				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("false")));
+		stubFor(get(anyUrl()).atPriority(2)
+				.willReturn(ok()));
 	}
 
 	@After
 	public void cleanServiceConfig() {
+		reset();
 	}
 
 	@Test
 	public void test_stock_not_enough() {
-//		when(productService.checkStockEnough(anyLong(), anyLong())).thenReturn(false);
+		stubFor(get(urlPathMatching("/product/check")).atPriority(1)
+				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("false")));
 		assertFalse(orderService.buy(1L, 1L, 20L, BigDecimal.valueOf(100)));
+		verify(1, getRequestedFor(urlPathMatching("/product/check")));
 	}
 
 	@Test
 	public void test_balance_not_enough() {
-//		when(accountService.checkBalanceEnough(anyLong(), any())).thenReturn(false);
+		stubFor(get(urlPathMatching("/account/check")).atPriority(1)
+				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("false")));
 		assertFalse(orderService.buy(1L, 1L, 10L, BigDecimal.valueOf(200)));
+		verify(1, getRequestedFor(urlPathMatching("/account/check")));
 	}
 
 	@Test

@@ -5,13 +5,11 @@ import java.math.BigDecimal;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-@FeignClient(name = "account", url = "http://localhost:8081/account")
+@FeignClient(name = "account", url = "${endpoint.account.url}/account")
 public interface AccountServiceClient extends AccountService {
 
-	@GetMapping("/check")
-	@ResponseBody
+	@GetMapping(value = "/check")
 	public boolean checkBalanceEnough(@RequestParam("accountId") Long accountId, @RequestParam("price") BigDecimal price);
 	
 	@GetMapping("/prepare/decrement")
@@ -21,7 +19,6 @@ public interface AccountServiceClient extends AccountService {
 	public void prepareBalanceRevert(@RequestParam("accountId") Long accountId, @RequestParam("price") BigDecimal price);
 	
 	@GetMapping("/query")
-	@ResponseBody
 	public BigDecimal queryBalance(@RequestParam("accountId") Long accountId);
 	
 	@GetMapping("/execute/decrement")
