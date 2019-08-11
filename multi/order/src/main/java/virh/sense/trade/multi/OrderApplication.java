@@ -1,11 +1,15 @@
 package virh.sense.trade.multi;
 
 import org.apache.dubbo.config.spring.context.annotation.DubboComponentScan;
-import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import virh.sense.trade.annotation.LogExecutionTime;
@@ -24,7 +28,12 @@ import virh.sense.trade.service.OrderService;
 public class OrderApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(OrderApplication.class, args);
+		new SpringApplicationBuilder(OrderApplication.class).web(WebApplicationType.SERVLET)			
+		.listeners((ApplicationListener<ApplicationEnvironmentPreparedEvent>) event -> {
+            Environment environment = event.getEnvironment();
+            int port = environment.getProperty("embedded.zookeeper.port", int.class);
+            new EmbeddedZooKeeper(port, false).start();
+        }).run(args);
 	}
 
 }
