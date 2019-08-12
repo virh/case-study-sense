@@ -29,11 +29,7 @@ public class ProductApplication {
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(ProductApplication.class).web(WebApplicationType.NONE)			
-			.listeners((ApplicationListener<ApplicationEnvironmentPreparedEvent>) event -> {
-	            Environment environment = event.getEnvironment();
-	            int port = environment.getProperty("embedded.zookeeper.port", int.class);
-	            new EmbeddedZooKeeper(port, false).start();
-	        }).run(args);
+			.run(args);
 	}
 
 }

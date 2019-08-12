@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import virh.sense.trade.annotation.LogExecutionTime;
@@ -20,10 +21,10 @@ public class OrderService {
 	@Autowired
 	private OrderItemRepository orderItemRepository;
 
-	@Reference(version="0.0.1", application="product-consume", url="dubbo://localhost:12346", lazy=true)
+	@Reference(version="0.0.1", application="product-consume", check=false, lazy=true)
 	private ProductService productService;
 
-	@Reference(version="0.0.1", application="account-consume", url="dubbo://localhost:12345", lazy=true)
+	@Reference(version="0.0.1", application="account-consume", check=false, lazy=true)
 	private AccountService accountService;
 
 	private ReentrantLock lock = new ReentrantLock();

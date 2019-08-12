@@ -17,11 +17,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.dubbo.config.ApplicationConfig;
-import org.apache.dubbo.config.ProtocolConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.ServiceConfig;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -37,13 +37,15 @@ import virh.sense.trade.multi.OrderApplication;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ContextConfiguration(classes = OrderApplication.class)
+@FixMethodOrder
 public class OrderServiceTest {
 
 	private static Logger log = LoggerFactory.getLogger(OrderServiceTest.class);
 
-	private RegistryConfig registryNA = new RegistryConfig("N/A");
-	private ProtocolConfig protocolAccountDubo12345 = new ProtocolConfig("dubbo", 12345);
-	private ProtocolConfig protocolProductDubo12346 = new ProtocolConfig("dubbo", 12346);
+	@Autowired
+	private RegistryConfig registry;
+//	private ProtocolConfig protocolAccountDubo12345 = new ProtocolConfig("dubbo", 12345);
+//	private ProtocolConfig protocolProductDubo12346 = new ProtocolConfig("dubbo", 12346);
 
 	private ServiceConfig<AccountService> accountServiceConfig;
 	private ServiceConfig<ProductService> productServiceConfig;
@@ -77,8 +79,8 @@ public class OrderServiceTest {
 	private ServiceConfig<AccountService> exportAccountService() {
 		ServiceConfig<AccountService> service = new ServiceConfig<AccountService>();
         service.setApplication(applicationConfig);
-        service.setRegistry(registryNA);
-        service.setProtocol(protocolAccountDubo12345);
+        service.setRegistry(registry);
+//        service.setProtocol(protocolAccountDubo12345);
         service.setInterface(AccountService.class.getName());
         service.setRef(accountService);
         service.setValidation(String.valueOf(true));
@@ -90,8 +92,8 @@ public class OrderServiceTest {
 	private ServiceConfig<ProductService> exportProductService() {
 		ServiceConfig<ProductService> service = new ServiceConfig<ProductService>();
         service.setApplication(applicationConfig);
-        service.setRegistry(registryNA);
-        service.setProtocol(protocolProductDubo12346);
+        service.setRegistry(registry);
+//        service.setProtocol(protocolProductDubo12346);
         service.setInterface(ProductService.class.getName());
         service.setRef(productService);
         service.setValidation(String.valueOf(true));

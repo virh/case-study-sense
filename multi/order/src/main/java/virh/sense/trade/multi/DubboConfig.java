@@ -1,8 +1,11 @@
 package virh.sense.trade.multi;import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ProtocolConfig;
+import org.apache.dubbo.config.RegistryConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class DubboConfig {
@@ -28,5 +31,14 @@ public class DubboConfig {
 		protocolConfig.setName("dubbo");
 		protocolConfig.setPort(12345);
 		return protocolConfig;
+	}
+	
+	@Primary
+	@Bean
+	public RegistryConfig registryConfig(@Value("${dubbo.registry.address}") String address/*, @Value("${dubbo.registry.file}") String file*/) {
+		RegistryConfig registryConfig = new RegistryConfig();
+		registryConfig.setAddress(address);
+		//registryConfig.setFile(file);
+		return registryConfig;
 	}
 }
