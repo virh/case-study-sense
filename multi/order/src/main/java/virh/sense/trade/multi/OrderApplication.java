@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -20,6 +21,7 @@ import virh.sense.trade.service.OrderService;
 @EntityScan(basePackageClasses = Order.class)
 @EnableJpaRepositories(basePackageClasses = OrderRepository.class)
 @EnableFeignClients(basePackageClasses = AccountServiceClient.class)
+@EnableEurekaServer
 @ComponentScan(basePackageClasses = { LogExecutionTime.class, OrderService.class, LogExecuteTimeAspect.class })
 @ImportAutoConfiguration(value=FeignConfig.class)
 public class OrderApplication {
