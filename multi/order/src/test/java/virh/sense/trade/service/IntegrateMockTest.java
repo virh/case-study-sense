@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.cloud.netflix.eureka.server.InstanceRegistry;
@@ -61,8 +62,7 @@ import virh.sense.trade.multi.OrderApplication;
 			"eureka.client.registerWithEureka=false",
 			"eureka.client.fetchRegistry=false",
 			"logging.level.com.netflix.eureka=DEBUG", 
-			"logging.level.com.netflix.discovery=DEBUG",
-			"eureka.datacenter=myname"})
+			"logging.level.com.netflix.discovery=DEBUG"})
 @ContextConfiguration(classes = OrderApplication.class)
 @AutoConfigureWireMock(port = 8081)
 public class IntegrateMockTest {
@@ -75,7 +75,9 @@ public class IntegrateMockTest {
 
 	private static final String HOST_NAME = "localhost";
 
-	private static final String INSTANCE_ID = "localhost:8081";
+	private static final String PRODUCT_INSTANCE_ID = "localhost:product:8081";
+	
+	private static final String ACCOUNT_INSTANCE_ID = "localhost:account:8081";
 	
 	private static final int PORT = 8081;
 	
@@ -84,6 +86,9 @@ public class IntegrateMockTest {
 	
 	@Autowired
 	PeerAwareInstanceRegistry instanceRegistry;
+	
+	@Autowired
+	private DiscoveryClient discoveryClient;
 	
 	@Before
 	public void prepareData() throws URISyntaxException {
@@ -110,18 +115,25 @@ public class IntegrateMockTest {
 		// creating instance info
 		final LeaseInfo leaseInfo = getLeaseInfo();
 		final InstanceInfo productInstance = getInstanceInfo(PRODUCT_NAME, HOST_NAME,
-				INSTANCE_ID, PORT, leaseInfo);
+				PRODUCT_INSTANCE_ID, PORT, leaseInfo);
 		final InstanceInfo accountInstance = getInstanceInfo(ACCOUNT_NAME, HOST_NAME,
-				INSTANCE_ID, PORT, leaseInfo);
+				ACCOUNT_INSTANCE_ID, PORT, leaseInfo);
 		instanceRegistry.register(productInstance, false);
 		instanceRegistry.register(accountInstance, false);
-//		CountDownLatch countDownLatch = new CountDownLatch(1);
-//		try {
-//			countDownLatch.await();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			// wait the applications
+		}
+		System.out.println(discoveryClient.getServices().size());
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		try {
+			countDownLatch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@After
@@ -255,6 +267,7 @@ public class IntegrateMockTest {
 		builder.setInstanceId(instanceId);
 		builder.setPort(port);
 		builder.setLeaseInfo(leaseInfo);
+		builder.setVIPAddressDeser(appName);
 		try {
 			builder.setIPAddr(InetAddress.getByName(hostName).getHostAddress());
 		} catch (UnknownHostException e) {
