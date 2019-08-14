@@ -4,7 +4,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -18,7 +18,7 @@ import virh.sense.trade.service.ProductServiceImpl;
 @SpringBootApplication
 @EntityScan(basePackageClasses=Product.class)
 @EnableJpaRepositories(basePackageClasses = ProductRepository.class)
-@EnableEurekaServer
+@EnableEurekaClient
 @ComponentScan(basePackageClasses= {LogExecutionTime.class, ProductServiceImpl.class, LogExecuteTimeAspect.class, ProductController.class})
 public class ProductApplication {
 

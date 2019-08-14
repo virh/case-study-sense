@@ -2,7 +2,6 @@ package virh.sense.trade.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
@@ -17,7 +16,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,23 +33,57 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+import org.springframework.cloud.netflix.eureka.server.InstanceRegistry;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.netflix.appinfo.DataCenterInfo;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.appinfo.LeaseInfo;
+import com.netflix.appinfo.MyDataCenterInfo;
+import com.netflix.discovery.shared.Application;
+import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 
 import virh.sense.trade.multi.OrderApplication;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {"endpoint.account.url=http://localhost:8081","endpoint.product.url=http://localhost:8081"})
+@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, 
+	properties = {"eureka.instance.hostname=localhost", 
+			"eureka.client.serviceUrl.defaultZone=http://${eureka.instance.hostname}:${server.port}/eureka/",
+			"spring.freemarker.template-loader-path=classpath:/templates/",
+			"spring.freemarker.prefer-file-system-access=false",
+			"eureka.client.registerWithEureka=false",
+			"eureka.client.fetchRegistry=false",
+			"logging.level.com.netflix.eureka=DEBUG", 
+			"logging.level.com.netflix.discovery=DEBUG",
+			"eureka.datacenter=myname"})
 @ContextConfiguration(classes = OrderApplication.class)
 @AutoConfigureWireMock(port = 8081)
 public class IntegrateMockTest {
 
 	private static Logger log = LoggerFactory.getLogger(IntegrateMockTest.class);
 
+	private static final String PRODUCT_NAME = "product";
+	
+	private static final String ACCOUNT_NAME = "account";
+
+	private static final String HOST_NAME = "localhost";
+
+	private static final String INSTANCE_ID = "localhost:8081";
+	
+	private static final int PORT = 8081;
+	
 	@Autowired
 	OrderService orderService;
+	
+	@Autowired
+	PeerAwareInstanceRegistry instanceRegistry;
 	
 	@Before
 	public void prepareData() throws URISyntaxException {
@@ -72,11 +107,27 @@ public class IntegrateMockTest {
 				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("false")));
 		stubFor(get(anyUrl()).atPriority(2)
 				.willReturn(ok()));
+		// creating instance info
+		final LeaseInfo leaseInfo = getLeaseInfo();
+		final InstanceInfo productInstance = getInstanceInfo(PRODUCT_NAME, HOST_NAME,
+				INSTANCE_ID, PORT, leaseInfo);
+		final InstanceInfo accountInstance = getInstanceInfo(ACCOUNT_NAME, HOST_NAME,
+				INSTANCE_ID, PORT, leaseInfo);
+		instanceRegistry.register(productInstance, false);
+		instanceRegistry.register(accountInstance, false);
+//		CountDownLatch countDownLatch = new CountDownLatch(1);
+//		try {
+//			countDownLatch.await();
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	@After
 	public void cleanServiceConfig() {
 		reset();
+		instanceRegistry.clearRegistry();
 	}
 
 	@Test
@@ -187,5 +238,36 @@ public class IntegrateMockTest {
 		assertEquals(1, success);
 		assertEquals(9_999, fail);
 		assertEquals(0, exceptions.size());
+	}
+	
+	private LeaseInfo getLeaseInfo() {
+		LeaseInfo.Builder leaseBuilder = LeaseInfo.Builder.newBuilder();
+		leaseBuilder.setRenewalIntervalInSecs(10);
+		leaseBuilder.setDurationInSecs(15);
+		return leaseBuilder.build();
+	}
+
+	private InstanceInfo getInstanceInfo(String appName, String hostName,
+			String instanceId, int port, LeaseInfo leaseInfo) {
+		InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder();
+		builder.setAppName(appName);
+		builder.setHostName(hostName);
+		builder.setInstanceId(instanceId);
+		builder.setPort(port);
+		builder.setLeaseInfo(leaseInfo);
+		try {
+			builder.setIPAddr(InetAddress.getByName(hostName).getHostAddress());
+		} catch (UnknownHostException e) {
+			//
+		}
+		builder.setDataCenterInfo(new MyDataCenterInfo(DataCenterInfo.Name.MyOwn));
+		return builder.build();
+	}
+	
+	@Configuration
+	@EnableAutoConfiguration
+	@EnableEurekaServer
+	protected static class Application {
+
 	}
 }

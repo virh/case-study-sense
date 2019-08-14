@@ -51,6 +51,7 @@
 		<module>account</module>
 		<module>product</module>
 		<module>order</module>
+		<module>center</module>
 	</modules>
 	<build>
 		<plugins>
