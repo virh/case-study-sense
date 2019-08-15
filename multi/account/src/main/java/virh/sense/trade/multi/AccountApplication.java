@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.dubbo.config.spring.context.annotation.DubboComponentScan;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -34,6 +35,9 @@ public class AccountApplication {
 	@Autowired
 	AccountServiceImpl accountService;
 	
+	@Value("${grpc.port}")
+	int port;
+	
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(AccountApplication.class).web(WebApplicationType.NONE).run(args);
 	}
@@ -41,10 +45,7 @@ public class AccountApplication {
 	
 	@PostConstruct
 	void postExecute() throws IOException, InterruptedException {
-		System.out.println("server startup begin");
-		Server server = ServerBuilder.forPort(8081).addService(accountService).build();
+		Server server = ServerBuilder.forPort(port).addService(accountService).build();
 		server.start();
-		server.awaitTermination();
-		System.out.println("server startup end");
 	}
 }

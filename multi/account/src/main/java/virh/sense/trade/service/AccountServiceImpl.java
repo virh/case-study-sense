@@ -114,14 +114,14 @@ public class AccountServiceImpl extends AccountServiceImplBase implements Accoun
 		responseObserver.onCompleted();
 	}
 	
-	BInteger write(BigInteger val) {
+	public static BInteger write(BigInteger val) {
 		BInteger.Builder builder = BInteger.newBuilder();
 		ByteString bytes = ByteString.copyFrom(val.toByteArray());
 		builder.setValue(bytes);
 		return builder.build();
 	}
 
-	BigInteger read(BInteger message) {
+	public static BigInteger read(BInteger message) {
 		ByteString bytes = message.getValue();
 		return new BigInteger(bytes.toByteArray());
 	}
