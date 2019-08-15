@@ -7,10 +7,12 @@ import java.util.Optional;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import io.grpc.stub.StreamObserver;
 import virh.sense.trade.domain.Product;
+import virh.sense.trade.service.ProductServiceGrpc.ProductServiceImplBase;
 
 @Service(timeout=5000, version="0.0.1")
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl extends ProductServiceImplBase implements ProductService {
 
 	@Autowired
 	ProductRepository productRepository;
@@ -48,4 +50,57 @@ public class ProductServiceImpl implements ProductService {
 		product.setNumber(product.getNumber()-number);
 		productRepository.save(product);
 	}
+
+
+	@Override
+	public void checkStockEnough(ProductAndNumberRequest request, StreamObserver<CheckResponse> responseObserver) {
+		boolean flag = checkStockEnough(request.getProductId(), request.getNumber());
+		CheckResponse response = CheckResponse.newBuilder()
+				.setFlag(flag)
+				.build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+
+	@Override
+	public void prepareStockDecrement(ProductAndNumberRequest request, StreamObserver<EmptyResponse> responseObserver) {
+		prepareStockDecrement(request.getProductId(), request.getNumber());
+		EmptyResponse response = EmptyResponse.newBuilder()
+				.build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+
+	@Override
+	public void prepareStockRevert(ProductAndNumberRequest request, StreamObserver<EmptyResponse> responseObserver) {
+		prepareStockRevert(request.getProductId(), request.getNumber());
+		EmptyResponse response = EmptyResponse.newBuilder()
+				.build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+
+	@Override
+	public void queryStock(ProductRequest request, StreamObserver<ProductQueryResponse> responseObserver) {
+		long number = queryStock(request.getProductId());
+		ProductQueryResponse response = ProductQueryResponse.newBuilder()
+				.setNumber(number)
+				.build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+
+	@Override
+	public void executeStockDecrement(ProductAndNumberRequest request, StreamObserver<EmptyResponse> responseObserver) {
+		executeStockDecrement(request.getProductId(), request.getNumber());
+		EmptyResponse response = EmptyResponse.newBuilder()
+				.build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+	
 }

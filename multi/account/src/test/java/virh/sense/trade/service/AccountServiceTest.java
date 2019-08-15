@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -16,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 import virh.sense.trade.domain.Account;
 import virh.sense.trade.domain.Client;
 import virh.sense.trade.multi.AccountApplication;
