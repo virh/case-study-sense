@@ -26,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.PostConstruct;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -42,7 +45,12 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.cloud.netflix.eureka.server.InstanceRegistry;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestExecutionListeners.MergeMode;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.support.AbstractTestExecutionListener;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import com.netflix.appinfo.DataCenterInfo;
 import com.netflix.appinfo.InstanceInfo;
@@ -60,12 +68,13 @@ import virh.sense.trade.multi.OrderApplication;
 			"spring.freemarker.template-loader-path=classpath:/templates/",
 			"spring.freemarker.prefer-file-system-access=false",
 			"eureka.client.registerWithEureka=false",
-			"eureka.client.fetchRegistry=false",
+			/*"eureka.client.fetchRegistry=false",*/
 			"logging.level.com.netflix.eureka=DEBUG", 
 			"logging.level.com.netflix.discovery=DEBUG"})
 @ContextConfiguration(classes = OrderApplication.class)
-@AutoConfigureWireMock(port = 8081)
-public class IntegrateMockTest {
+@AutoConfigureWireMock(port = 0)
+@TestExecutionListeners(value = IntegrateMockTest.class, mergeMode = MergeMode.MERGE_WITH_DEFAULTS)
+public class IntegrateMockTest extends AbstractTestExecutionListener {
 
 	private static Logger log = LoggerFactory.getLogger(IntegrateMockTest.class);
 
@@ -74,12 +83,9 @@ public class IntegrateMockTest {
 	private static final String ACCOUNT_NAME = "account";
 
 	private static final String HOST_NAME = "localhost";
-
-	private static final String PRODUCT_INSTANCE_ID = "localhost:product:8081";
 	
-	private static final String ACCOUNT_INSTANCE_ID = "localhost:account:8081";
-	
-	private static final int PORT = 8081;
+	@Value("${wiremock.server.port}")
+	int wiremockPort = 8081;
 	
 	@Autowired
 	OrderService orderService;
@@ -90,6 +96,34 @@ public class IntegrateMockTest {
 	@Autowired
 	private DiscoveryClient discoveryClient;
 	
+	@Override
+	public void beforeTestClass(TestContext testContext) throws Exception {
+		testContext.getApplicationContext()
+	        .getAutowireCapableBeanFactory()
+	        .autowireBean(this);
+		// creating instance info
+		final LeaseInfo leaseInfo = getLeaseInfo();
+		final InstanceInfo productInstance = getInstanceInfo(PRODUCT_NAME, HOST_NAME,
+				HOST_NAME + ":" + PRODUCT_NAME + ":" + wiremockPort, wiremockPort, leaseInfo);
+		final InstanceInfo accountInstance = getInstanceInfo(ACCOUNT_NAME, HOST_NAME,
+				HOST_NAME + ":" + ACCOUNT_NAME + ":" + wiremockPort, wiremockPort, leaseInfo);
+		instanceRegistry.register(productInstance, false);
+		instanceRegistry.register(accountInstance, false);
+		while(discoveryClient.getServices().size()==0) {
+			try {
+				// wait the eureka client discovery services
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				//
+			}
+		}
+	}
+	
+	@Override
+	public void afterTestClass(TestContext testContext) throws Exception {
+		instanceRegistry.clearRegistry();
+	}
+
 	@Before
 	public void prepareData() throws URISyntaxException {
 		stubFor(get(urlPathMatching("/account/check")).atPriority(1)
@@ -112,34 +146,11 @@ public class IntegrateMockTest {
 				.willReturn(aResponse().withHeader("Content-Type", "text/plain").withBody("false")));
 		stubFor(get(anyUrl()).atPriority(2)
 				.willReturn(ok()));
-		// creating instance info
-		final LeaseInfo leaseInfo = getLeaseInfo();
-		final InstanceInfo productInstance = getInstanceInfo(PRODUCT_NAME, HOST_NAME,
-				PRODUCT_INSTANCE_ID, PORT, leaseInfo);
-		final InstanceInfo accountInstance = getInstanceInfo(ACCOUNT_NAME, HOST_NAME,
-				ACCOUNT_INSTANCE_ID, PORT, leaseInfo);
-		instanceRegistry.register(productInstance, false);
-		instanceRegistry.register(accountInstance, false);
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			// wait the applications
-		}
-		System.out.println(discoveryClient.getServices().size());
-		CountDownLatch countDownLatch = new CountDownLatch(1);
-		try {
-			countDownLatch.await();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	@After
 	public void cleanServiceConfig() {
 		reset();
-		instanceRegistry.clearRegistry();
 	}
 
 	@Test
