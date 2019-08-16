@@ -21,7 +21,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
@@ -31,9 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -49,7 +46,7 @@ import virh.sense.trade.service.ProductServiceGrpc.ProductServiceImplBase;
 		"grpc.product.port=${grpc.port}"
 })
 @ContextConfiguration(classes = OrderApplication.class)
-public class OrderServiceGrpcTest extends AbstractTestExecutionListener {
+public class OrderServiceGrpcTest {
 
 	private static Logger log = LoggerFactory.getLogger(OrderServiceGrpcTest.class);
 
@@ -70,12 +67,6 @@ public class OrderServiceGrpcTest extends AbstractTestExecutionListener {
 	
 	private static boolean initialized = false;
 
-	public void beforeTestClass(TestContext testContext) throws Exception {
-		MockitoAnnotations.initMocks(this);
-		testContext.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this);
-
-	}
-	
 	@Before
 	public void prepareServer() throws IOException {
 		if (!initialized) {
