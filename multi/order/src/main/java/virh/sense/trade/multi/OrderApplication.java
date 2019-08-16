@@ -6,11 +6,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import brave.sampler.Sampler;
 import virh.sense.trade.annotation.LogExecutionTime;
 import virh.sense.trade.aspect.LogExecuteTimeAspect;
+import virh.sense.trade.controller.OrderController;
 import virh.sense.trade.domain.Order;
 import virh.sense.trade.service.AccountServiceClient;
 import virh.sense.trade.service.OrderRepository;
@@ -21,7 +24,7 @@ import virh.sense.trade.service.OrderService;
 @EnableJpaRepositories(basePackageClasses = OrderRepository.class)
 @EnableFeignClients(basePackageClasses = AccountServiceClient.class)
 @EnableEurekaClient
-@ComponentScan(basePackageClasses = { LogExecutionTime.class, OrderService.class, LogExecuteTimeAspect.class })
+@ComponentScan(basePackageClasses = { LogExecutionTime.class, OrderService.class, LogExecuteTimeAspect.class, OrderController.class})
 @ImportAutoConfiguration(value=FeignConfig.class)
 public class OrderApplication {
 
@@ -29,4 +32,8 @@ public class OrderApplication {
 		SpringApplication.run(OrderApplication.class, args);
 	}
 
+	@Bean
+	public Sampler alwaysSampler() {
+	    return Sampler.ALWAYS_SAMPLE;
+	}
 }

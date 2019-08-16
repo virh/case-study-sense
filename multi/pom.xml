@@ -52,6 +52,7 @@
 		<module>product</module>
 		<module>order</module>
 		<module>center</module>
+		<module>zipkin</module>
 	</modules>
 	<build>
 		<plugins>
