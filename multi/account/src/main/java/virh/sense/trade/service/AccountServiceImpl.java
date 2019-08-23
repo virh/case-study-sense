@@ -8,9 +8,14 @@ import java.util.Optional;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import io.seata.core.context.RootContext;
 import virh.sense.trade.domain.Account;
+import virh.sense.trade.service.AccountService;
 
-@Service(timeout=5000, version="0.0.1")
+@Service(version = "1.0.0",protocol = "${dubbo.protocol.id}",
+	application = "${dubbo.application.id}",
+	registry = "${dubbo.registry.id}",
+	timeout = 3000)
 public class AccountServiceImpl implements AccountService {
 
 	@Autowired
@@ -43,6 +48,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public void executeBalanceDecrement(Long accountId, BigDecimal price) {
+		System.out.println("global transaction id ：" + RootContext.getXID());
 		Account account = accountRepository.findById(accountId).get();
 		account.setBalance(account.getBalance().subtract(price));
 		accountRepository.save(account);

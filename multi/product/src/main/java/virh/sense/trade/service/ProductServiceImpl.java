@@ -7,9 +7,12 @@ import java.util.Optional;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import io.seata.core.context.RootContext;
 import virh.sense.trade.domain.Product;
 
-@Service(timeout=5000, version="0.0.1")
+@Service(version = "1.0.0",protocol = "${dubbo.protocol.id}",
+	application = "${dubbo.application.id}",registry = "${dubbo.registry.id}",
+	timeout = 3000)
 public class ProductServiceImpl implements ProductService {
 
 	@Autowired
@@ -44,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public void executeStockDecrement(Long productId, Long number) {
+		System.out.println("global transaction id ：" + RootContext.getXID());
 		Product product = productRepository.findById(productId).get();
 		product.setNumber(product.getNumber()-number);
 		productRepository.save(product);

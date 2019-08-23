@@ -5,6 +5,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -21,7 +22,8 @@ import virh.sense.trade.service.ProductServiceImpl;
 @EnableJpaRepositories(basePackageClasses = ProductRepository.class)
 @ComponentScan(basePackageClasses= {LogExecutionTime.class, ProductServiceImpl.class, LogExecuteTimeAspect.class})
 @DubboComponentScan(basePackageClasses = AccountService.class)
-@Import(DubboConfig.class)
+@Import({DubboConfig.class, SetaAutoConfig.class})
+@EnableDiscoveryClient
 public class ProductApplication {
 
 	public static void main(String[] args) {

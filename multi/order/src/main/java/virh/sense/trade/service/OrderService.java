@@ -6,7 +6,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import io.seata.spring.annotation.GlobalTransactional;
 import virh.sense.trade.annotation.LogExecutionTime;
 import virh.sense.trade.domain.OrderItem;
 import virh.sense.trade.domain.SaleOrder;
@@ -29,6 +31,7 @@ public class OrderService {
 	private ReentrantLock lock = new ReentrantLock();
 
 	@LogExecutionTime
+	@GlobalTransactional(timeoutMills = 300000, name = "dubbo-gts-seata-multi")
 	public boolean buy(Long productId, Long accountId, Long number, BigDecimal price) {
 		lock.lock();
 		try {
